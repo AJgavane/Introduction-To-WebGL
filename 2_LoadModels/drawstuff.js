@@ -1,7 +1,7 @@
 /*Global Variables*/
 var gl;
 const INPUT_TRIANGLE_URL = 
-    "https://ncsucgclass.github.io/prog1/triangles.json";
+    "https://ajgavane.github.io/Introduction-To-WebGL/data/triangles.json";
 var vertex_buffer;
 var triangle_buffer;
 /*
