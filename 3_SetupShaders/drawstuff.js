@@ -4,6 +4,7 @@ const INPUT_TRIANGLE_URL =
     "https://ncsucgclass.github.io/prog1/triangles.json";
 var vertex_buffer;
 var triangle_buffer;
+var vertex_position_attribute;
 /*
  * Set up WebGL context
  */
@@ -91,11 +92,79 @@ function loadModels()
 		triangle_buffer = gl.createBuffer();	// initialize empty triangle buffer
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangle_buffer);	// activate the buffer
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(triangle_buffer_data), gl.STATIC_DRAW); // update the buffer
-		
-		console.log("Models Loaded Succesfully!");
 	}	// end input tirangle check
 }	// end load models
 
+function setupShaders()
+{
+	// 1. Writing Shader code:
+	// Define vertex shader in essl using es6 template string
+	var vertex_shader_code = `
+		attribute vec3 vertex_position;
+
+		void main(void)
+		{
+			gl_Position = vec4(vertex_position, 1.0);	// use the untransformed position
+		}
+	`;
+
+	// Define fragment shader in essl using es6 template string
+	var fragment_shader_code = `
+		void main(void)
+		{
+			gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); // all fragments are white
+		}
+	`;
+
+	// 2.: Setting up Shader Code:
+	try
+	{
+		// Protocol for shader: Create -> Attach -> Compile -> Link to a program -> Validate the program.
+		// Vertex Shader
+		var vertex_shader = gl.createShader(gl.VERTEX_SHADER);		// Create a Vertex Shader
+		gl.shaderSource(vertex_shader, vertex_shader_code);			// Attach the code
+		gl.compileShader(vertex_shader);							// Compile the code for GPU execution
+		if(!gl.getShaderParameter(vertex_shader, gl.COMPILE_STATUS))
+		{
+			throw "Error occurred when compiling Vertex Shader!" + gl.getShaderInfoLog(vertex_shader);
+			gl.deleteShader(vertex_shader);
+		}
+
+		// Fragment shader
+		var fragment_shader = gl.createShader(gl.FRAGMENT_SHADER);	// Create a Fragment Shader
+		gl.shaderSource(fragment_shader, fragment_shader_code);		// Attach the code
+		gl.compileShader(fragment_shader);							// Compile the code for GPU execution
+		if(!gl.getShaderParameter(fragment_shader, gl.COMPILE_STATUS))
+		{
+			throw "Error occurred when compiling Fragment Shader!" + gl.getShaderInfoLog(fragment_shader);
+			gl.deleteShader(fragment_shader);
+		}
+
+		// Shader Program: Attach All the shaders -> Link it to gl context -> Validate (optional)
+		var shader_program = gl.createProgram();				// Create a shader program
+		gl.attachShader(shader_program, vertex_shader);			// put vertex shader in program
+		gl.attachShader(shader_program, fragment_shader);		// put fragment shader in program
+		gl.linkProgram(shader_program);							// Link the program to the WebGL context
+		if(!gl.getProgramParameter(shader_program, gl.LINK_STATUS))
+		{
+			throw "Error occurred when Linking the Program!"
+		}
+		else 
+		{
+			gl.useProgram(shader_program); // activate the program
+			// Get pointer to vertex shader input
+			vertex_position_attribute = gl.getAttribLocation(shader_program, "vertex_position");	
+			// input to shader from array
+			gl.enableVertexAttribArray(vertex_position_attribute); 	
+		}
+
+		console.log("Shaders Set up Successful!");
+	}
+	catch (e)
+	{
+		console.log(e);
+	}
+}
 
 /*
  * Main method
@@ -104,5 +173,5 @@ function main()
 {
     setupWebGL();
     loadModels();
-
+    setupShaders();
 }
