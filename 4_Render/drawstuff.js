@@ -4,6 +4,8 @@ const INPUT_TRIANGLE_URL =
     "https://ncsucgclass.github.io/prog1/triangles.json";
 var vertex_buffer;
 var triangle_buffer;
+var triangle_buffer_size = 0;			// number of triangle in the index buffer 
+
 var vertex_position_attribute;
 /*
  * Set up WebGL context
@@ -50,7 +52,6 @@ function loadModels()
 		var vertex_buffer_data = [];					// 1D array of vertex coordinates for WebGL
 		var triangle_buffer_data = [];					// 1D array of vertex Indices for WebGL
 		var vertex_buffer_size = 0;				// number of vertices in the vertex Buffer
-		var triangle_buffer_size = 0;			// number of triangle in the index buffer 
 		var vertex_to_add = [];					// Vertex corrdinates to add in the vertex array
 		var triangle_to_add = vec3.create();   	// Triangle indeces to add in the index buffer
 		var index_offset = vec3.create();		// the number of vertices in the vertex buffer
@@ -157,14 +158,40 @@ function setupShaders()
 			// input to shader from array
 			gl.enableVertexAttribArray(vertex_position_attribute); 	
 		}
-
-		console.log("Shaders Set up Successful!");
 	}
 	catch (e)
 	{
 		console.log(e);
 	}
 }
+
+/*
+ * Render the model on the canvas
+ */
+function render()
+{
+	// Always clear the frame & depth buffers
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+	// Vertex buffer: Activate and feed into vertex Shader
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);	// Activate
+	gl.vertexAttribPointer(vertex_position_attribute, 	// index of the vertex attribute
+							3, 							// size: number of components in the vertex attribute
+							gl.FLOAT,					// data type of each component of vertex attribute
+							false,						// is normalized?
+							0,0							// stride, offset
+						);	// Feed
+
+	// Triangle buffer: Activate and Render
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangle_buffer);
+	gl.drawElements(
+		gl.TRIANGLES,			// Mode
+		triangle_buffer_size,	// number of elements to be rendered
+		gl.UNSIGNED_SHORT,		// type of values in the element array buffer
+		0						// offset
+		); 	// render
+	console.log("Triangles Rendered Successfully!");
+}	
 
 /*
  * Main method
@@ -174,4 +201,5 @@ function main()
     setupWebGL();
     loadModels();
     setupShaders();
+    render();
 }
